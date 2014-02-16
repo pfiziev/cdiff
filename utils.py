@@ -1,6 +1,7 @@
 """
     Here is the place to put utility methods that are shared by the modules.
 """
+from itertools import izip
 import json
 import os
 import re
@@ -119,6 +120,31 @@ def mean_and_std(array):
     return m, math.sqrt(sum((x - m) ** 2 for x in array) / float(len(array)))
 
 
+def eucld(x, y):
+    return math.sqrt(sum((xx - yy) ** 2 for xx, yy in izip(x, y)))
+
+rmse = eucld
+
+
+def R2(responses, predictions):
+    mean_response = mean(responses)
+    var_response = sum((r - mean_response) ** 2 for r in responses)
+
+    return 1 - (float(sum((r - p) ** 2 for r, p in izip(responses, predictions))) / var_response)
+
+
+def pearsonr(responses, predictions):
+    mean_response = mean(responses)
+    var_response = sum((r - mean_response) ** 2 for r in responses)
+
+    mean_prediction = mean(predictions)
+    var_prediction = sum((r - mean_prediction) ** 2 for r in predictions)
+
+    return sum((r - mean_response) * (p - mean_prediction)
+                   for r, p in izip(responses, predictions)) / math.sqrt(var_response * var_prediction)
+
+
+
 def get_params(ctrl_fname):
 
     with open(ctrl_fname) as control_f:
@@ -129,6 +155,10 @@ def get_params(ctrl_fname):
             control[k] = os.path.join(control['root'], control[k])
 
     return control
+
+
+# a constant that denotes all chromosome ids
+ALL = 'ALL'
 
 
 def read_chrom_lengths_in_bins(genome, chrom_ids=None):
